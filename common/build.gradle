@@ -1,0 +1,78 @@
+// common/build.gradle
+// ─────────────────────────────────────────────────────────────────────────────
+// The common subproject holds all loader-agnostic code.
+// It compiles against the vanilla Minecraft jar (provided via NeoForge's
+// toolchain) so we get proper refmaps and the full MC API without depending
+// on any loader at runtime.
+//
+// Neither NeoForge nor Fabric are on the runtime classpath here —
+// loader-specific code goes into the neoforge / fabric subprojects.
+// ─────────────────────────────────────────────────────────────────────────────
+
+plugins {
+    id 'net.neoforged.moddev' version '2.0.78'
+}
+
+// Expose common sources so loader subprojects can depend on them.
+configurations {
+    commonJava {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+    commonResources {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+
+artifacts {
+    commonJava(sourceSets.main.java.srcDirs.first()) { builtBy(compileJava) }
+    commonResources(sourceSets.main.resources.srcDirs.first())
+}
+
+// Use NeoForge's toolchain only to get a deobfuscated Minecraft jar for
+// compilation — no NeoForge runtime classes leak into common.
+neoForge {
+    // Version is required by the plugin; it won't be a runtime dependency.
+    version = project.neo_version
+
+    // Disable run configurations — common is never launched directly.
+    runs {}
+
+    mods {
+        "${project.mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+    // ── Create (compileOnly — loader provides at runtime) ────────────────────
+    compileOnly("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") {
+        transitive = false
+    }
+    compileOnly("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    compileOnly("com.tterrag.registrate:Registrate:${registrate_version}")
+
+    // ── Numismatics (compileOnly — loader provides at runtime) ───────────────
+    compileOnly("maven.modrinth:numismatics:${numismatics_version}")
+
+    implementation("org.commonmark:commonmark:0.24.0")
+
+    compileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
+    runtimeOnly("mezz.jei:jei-${minecraft_version}-common:${jei_version}")
+
+    compileOnly("me.shedaniel:RoughlyEnoughItems-api:$rei_version")
+}
+
+// Expose the compiled common jar so loader subprojects can consume it.
+configurations {
+    commonOutputs {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+artifacts {
+    commonOutputs(tasks.jar)
+}

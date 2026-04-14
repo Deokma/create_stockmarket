@@ -1,0 +1,34 @@
+// Root build.gradle
+// Applies the convention plugin and shared repositories to every subproject.
+
+subprojects {
+    apply plugin: 'mymod.common-conventions'
+
+    repositories {
+        mavenCentral()
+        // Create, Ponder, Flywheel
+        maven { url = 'https://maven.createmod.net'          }
+        // Registrate
+        maven { url = 'https://maven.ithundxr.dev/snapshots' }
+        // Modrinth Maven (Numismatics + others)
+        maven {
+            name = 'Modrinth'
+            url  = 'https://api.modrinth.com/maven'
+            content { includeGroup 'maven.modrinth' }
+        }
+        // JEI
+        maven {
+            name = 'JEI'
+            url  = 'https://maven.blamejared.com'
+        }
+        // REI
+        maven {
+            name = 'REI'
+            url  = 'https://maven.shedaniel.me'
+        }
+        // NeoForge releases
+        maven { url = 'https://maven.neoforged.net/releases'  }
+        // Fabric
+        maven { url = 'https://maven.fabricmc.net/'           }
+    }
+}

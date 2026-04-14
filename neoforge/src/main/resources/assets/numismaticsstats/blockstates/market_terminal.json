@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "numismaticsstats:block/market_terminal" }
+  }
+}

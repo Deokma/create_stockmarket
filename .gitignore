@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.classpath
+*.project
+*.factorypath
+
+# NeoForge / Loom run dirs
+run/
+runs/
+.loom-cache/
+
+# Datagen output (commit only if checked-in assets are desired)
+**/src/generated/
+
+# OS
+.DS_Store
+Thumbs.db

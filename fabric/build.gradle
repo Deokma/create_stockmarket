@@ -1,0 +1,62 @@
+// fabric/build.gradle
+// ─────────────────────────────────────────────────────────────────────────────
+// STUB — Fabric support is not yet implemented.
+// The project structure mirrors NeoForge so adding content later is trivial.
+// ─────────────────────────────────────────────────────────────────────────────
+
+plugins {
+    id 'fabric-loom' version '1.9.2'
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+// Pull compiled common sources (same pattern as neoforge subproject).
+configurations {
+    commonJava      { canBeConsumed = false; canBeResolved = true }
+    commonResources { canBeConsumed = false; canBeResolved = true }
+}
+
+dependencies {
+    // ── Minecraft + Fabric Loader ─────────────────────────────────────────────
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings  loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+
+    // ── Fabric API ────────────────────────────────────────────────────────────
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    // ── Common sources ────────────────────────────────────────────────────────
+    commonJava(project(path: ':common', configuration: 'commonJava'))
+    commonResources(project(path: ':common', configuration: 'commonResources'))
+    compileOnly project(':common')
+
+    // TODO: Add Create Fabric + Numismatics Fabric once implemented
+    // modImplementation "..."
+}
+
+// Merge common sources
+sourceSets.main.java.srcDirs      += configurations.commonJava.files
+sourceSets.main.resources.srcDirs += configurations.commonResources.files
+
+processResources {
+    def replaceProperties = [
+        mod_id         : project.mod_id,
+        mod_name       : project.mod_name,
+        mod_version    : project.mod_version,
+        mod_authors    : project.mod_authors,
+        mod_description: project.mod_description,
+        mod_license    : project.mod_license,
+    ]
+    inputs.properties replaceProperties
+    filesMatching('fabric.mod.json') {
+        expand replaceProperties
+    }
+}

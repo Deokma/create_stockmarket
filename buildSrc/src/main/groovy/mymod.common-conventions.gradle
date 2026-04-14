@@ -1,0 +1,36 @@
+// buildSrc/src/main/groovy/mymod.common-conventions.gradle
+// Applied to every subproject automatically from the root build.gradle.
+
+plugins {
+    id 'java'
+}
+
+group   = project.mod_group_id
+version = "${project.mod_version}+mc${project.minecraft_version}"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release  = 21
+    // Surface all deprecation warnings during development
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
+tasks.withType(Jar).configureEach {
+    manifest {
+        attributes([
+            'Specification-Title'   : project.mod_id,
+            'Specification-Vendor'  : project.mod_authors,
+            'Specification-Version' : '1',
+            'Implementation-Title'  : project.mod_name,
+            'Implementation-Version': project.version,
+            'Implementation-Vendor' : project.mod_authors,
+        ])
+    }
+}

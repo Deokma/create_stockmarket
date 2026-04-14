@@ -1,0 +1,21 @@
+{
+  "screen.numismaticsstats.shop_list": "Shop List",
+  "screen.numismaticsstats.search": "Search item or owner...",
+  "screen.numismaticsstats.refresh": "Refresh",
+  "screen.numismaticsstats.loading": "Loading...",
+  "screen.numismaticsstats.no_shops": "No shops found in loaded chunks.",
+  "screen.numismaticsstats.col_item": "Item",
+  "screen.numismaticsstats.col_price": "Price",
+  "screen.numismaticsstats.col_owner": "Owner",
+  "screen.numismaticsstats.col_mode": "Mode",
+  "screen.numismaticsstats.col_dim": "Dimension",
+  "key.numismaticsstats.open_shop_list": "Open Shop List",
+  "key.numismaticsstats.open_stock_market": "Open Stock Market",
+  "key.categories.numismaticsstats": "NumismaticsStats",
+  "block.numismaticsstats.market_terminal": "Market Terminal",
+  "screen.numismaticsstats.stock_market": "Stock Market",
+  "screen.numismaticsstats.tab_shops": "Shops",
+  "screen.numismaticsstats.tab_market": "Market",
+  "screen.numismaticsstats.market_loading": "Loading...",
+  "screen.numismaticsstats.market_empty": "No market data"
+}

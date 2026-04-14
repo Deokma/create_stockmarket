@@ -1,0 +1,112 @@
+// neoforge/build.gradle
+
+plugins {
+    id 'net.neoforged.moddev' version '2.0.78'
+}
+
+neoForge {
+    version = project.neo_version
+
+    accessTransformers = [file('src/main/resources/META-INF/accesstransformer.cfg')]
+
+    parchment {
+        mappingsVersion  = '2024.11.17'
+        minecraftVersion = project.minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        data {
+            data()
+            programArguments.addAll '--mod',      project.mod_id,
+                                    '--all',
+                                    '--output',   file('src/generated/resources/').absolutePath,
+                                    '--existing', file('src/main/resources/').absolutePath
+        }
+    }
+
+    mods {
+        "${project.mod_id}" {
+            sourceSet(sourceSets.main)
+            // Include common sources in the same mod so NeoForge sees
+            // everything under one modid.
+            sourceSet(project(':common').sourceSets.main)
+        }
+    }
+}
+
+// Pull compiled common sources into this subproject for compilation and jar.
+configurations {
+    commonJava      { canBeConsumed = false; canBeResolved = true }
+    commonResources { canBeConsumed = false; canBeResolved = true }
+}
+
+dependencies {
+    // ── Common sources ───────────────────────────────────────────────────────
+    commonJava(project(path: ':common', configuration: 'commonJava'))
+    commonResources(project(path: ':common', configuration: 'commonResources'))
+    // Also make common classes available on the compile classpath
+    compileOnly project(':common')
+
+    // ── Create ───────────────────────────────────────────────────────────────
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") {
+        transitive = false
+    }
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+
+    // ── Numismatics ──────────────────────────────────────────────────────────
+    implementation("maven.modrinth:numismatics:${numismatics_version}")
+
+    compileOnly("mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}")
+    runtimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
+
+    compileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:$rei_version")
+    runtimeOnly("me.shedaniel:RoughlyEnoughItems-neoforge:$rei_version")
+
+    jarJar(implementation "org.commonmark:commonmark") {
+        version {
+            strictly '[0.1, 1.0)'
+            prefer '0.24.0'
+        }
+    }
+    additionalRuntimeClasspath("org.commonmark:commonmark:0.24.0")
+}
+
+// Merge common java sources into the NeoForge compile source set.
+sourceSets.main.java.srcDirs      += configurations.commonJava.files
+sourceSets.main.resources.srcDirs += configurations.commonResources.files
+
+// Include datagen output
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+processResources {
+    def replaceProperties = [
+        mod_id         : project.mod_id,
+        mod_name       : project.mod_name,
+        mod_version    : project.mod_version,
+        mod_authors    : project.mod_authors,
+        mod_description: project.mod_description,
+        mod_license    : project.mod_license,
+        neo_version    : project.neo_version,
+        create_version : project.create_version,
+    ]
+    inputs.properties replaceProperties
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand replaceProperties
+    }
+}
