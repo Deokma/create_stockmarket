@@ -18,23 +18,54 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Server-side shop registry.
- * - Create: Numismatics Vendor shops are indexed only when the mod is present.
- * - Create TableCloth shops are always indexed (no Numismatics dependency).
+ * Server-side shop registry backed by {@link ShopSavedData}.
+ *
+ * All shops (from loaded chunks) are written to SavedData so they persist
+ * across server restarts. When a player requests the shop list they receive
+ * ALL known shops, not just those in currently loaded chunks.
+ *
+ * - Numismatics Vendor shops: indexed only when the mod is present.
+ * - Create TableCloth shops: always indexed.
  */
 public final class VendorRegistry {
 
     private static final Logger LOGGER = LogManager.getLogger("numismaticsstats");
 
-    private static final Map<String, ShopEntry> entries   = new ConcurrentHashMap<>();
-    private static final Map<UUID, String>      nameCache = new ConcurrentHashMap<>();
+    /** In-memory name cache — rebuilt from SavedData entries on load. */
+    private static final Map<UUID, String> nameCache = new ConcurrentHashMap<>();
+
+    /** Reference to the current world's SavedData. Set on server start, cleared on stop. */
+    private static ShopSavedData savedData = null;
 
     private VendorRegistry() {}
 
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    /**
+     * Call once when the server starts (or a world loads).
+     * Loads persisted shops from disk into memory.
+     */
+    public static void onServerStart(MinecraftServer server) {
+        savedData = ShopSavedData.getOrCreate(server);
+        // Rebuild name cache from persisted entries
+        for (ShopEntry e : savedData.getAll()) {
+            nameCache.put(e.ownerUuid(), e.ownerName());
+        }
+        LOGGER.info("[VendorRegistry] Loaded {} shops from disk", savedData.getAll().size());
+    }
+
+    /** Call when the server stops / world unloads. */
+    public static void onServerStop() {
+        savedData = null;
+        nameCache.clear();
+    }
+
     // ── Public API ────────────────────────────────────────────────────────────
 
+    /** Returns ALL known shops (loaded + persisted from previous sessions). */
     public static List<ShopEntry> getAll() {
-        return new ArrayList<>(entries.values());
+        if (savedData == null) return List.of();
+        return savedData.getAll();
     }
 
     public static void onChunkLoad(ServerLevel level, LevelChunk chunk) {
@@ -49,7 +80,8 @@ public final class VendorRegistry {
     }
 
     public static void onBlockBreak(ServerLevel level, BlockPos pos) {
-        entries.remove(makeKey(level, pos));
+        if (savedData == null) return;
+        savedData.remove(makeKey(level, pos));
     }
 
     public static void refreshLoaded(MinecraftServer server) {
@@ -73,21 +105,23 @@ public final class VendorRegistry {
         }
     }
 
+    /** Clears only the in-memory name cache; persisted shops are kept on disk. */
     public static void clear() {
-        entries.clear();
         nameCache.clear();
     }
 
     // ── Indexing ──────────────────────────────────────────────────────────────
 
     private static void tryIndex(ServerLevel level, BlockEntity be) {
+        if (savedData == null) return;
+
         // Numismatics Vendor — only if mod is present
         if (NumismaticsCompat.isPresent() && VendorIndexer.isVendorEntity(be)) {
-            VendorIndexer.indexVendor(level, be, entries, nameCache);
+            VendorIndexer.indexVendor(level, be, savedData, nameCache);
             return;
         }
 
-        // Create TableCloth — always available (no Numismatics dependency)
+        // Create TableCloth — always available
         if (be instanceof TableClothBlockEntity cloth) {
             indexTableCloth(level, cloth);
         }
@@ -99,6 +133,7 @@ public final class VendorRegistry {
             if (server == null) return;
 
             CompoundTag tag = cloth.saveWithoutMetadata(server.registryAccess());
+            LOGGER.debug("[VendorRegistry] TableCloth NBT keys at {}: {}", cloth.getBlockPos(), tag.getAllKeys());
 
             if (!tag.hasUUID("OwnerUUID")) return;
             UUID ownerUuid = tag.getUUID("OwnerUUID");
@@ -122,8 +157,25 @@ public final class VendorRegistry {
 
             ItemStack paymentItem = ItemStack.EMPTY;
             if (tag.contains("Filter")) {
-                paymentItem = ItemStack.parseOptional(server.registryAccess(),
-                        tag.getCompound("Filter"));
+                CompoundTag filterTag = tag.getCompound("Filter");
+                paymentItem = ItemStack.parseOptional(server.registryAccess(), filterTag);
+
+                // Try to read the required count from FilterAmount or similar keys
+                // TableCloth stores the required payment count separately
+                if (!paymentItem.isEmpty()) {
+                    int count = 1;
+                    // Check common NBT keys for payment count
+                    if (tag.contains("FilterAmount")) {
+                        count = tag.getInt("FilterAmount");
+                    } else if (filterTag.contains("count")) {
+                        count = filterTag.getInt("count");
+                    } else if (filterTag.contains("Count")) {
+                        count = filterTag.getByte("Count");
+                    }
+                    if (count > 1) paymentItem.setCount(count);
+                    LOGGER.debug("[VendorRegistry] TableCloth at {} paymentItem={} count={}",
+                            cloth.getBlockPos(), paymentItem.getHoverName().getString(), paymentItem.getCount());
+                }
             }
 
             String ownerName = nameCache.computeIfAbsent(ownerUuid, id -> {
@@ -137,7 +189,8 @@ public final class VendorRegistry {
                 return id.toString().substring(0, 8);
             });
 
-            entries.put(makeKey(level, cloth.getBlockPos()), new ShopEntry(
+            String key = makeKey(level, cloth.getBlockPos());
+            savedData.put(key, new ShopEntry(
                     cloth.getBlockPos(),
                     level.dimension().location().toString(),
                     sellingItem,

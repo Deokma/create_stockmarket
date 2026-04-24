@@ -1,9 +1,6 @@
 package by.deokma.numismaticsstats.neoforge.network;
 
-import by.deokma.numismaticsstats.market.MarketData;
 import by.deokma.numismaticsstats.market.MarketEntry;
-import by.deokma.numismaticsstats.neoforge.client.StockMarketScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -36,13 +33,6 @@ public record MarketPacket(List<MarketEntry> entries) implements CustomPacketPay
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public static void handle(MarketPacket pkt, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            MarketData.set(pkt.entries());
-            MarketData.setLoading(false);
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.screen instanceof StockMarketScreen screen) {
-                screen.refreshEntries();
-            }
-        });
+        ctx.enqueueWork(() -> ClientPacketHandler.handleMarketData(pkt.entries()));
     }
 }

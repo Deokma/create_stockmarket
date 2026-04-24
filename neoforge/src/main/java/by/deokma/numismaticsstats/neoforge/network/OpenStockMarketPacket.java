@@ -1,7 +1,5 @@
 package by.deokma.numismaticsstats.neoforge.network;
 
-import by.deokma.numismaticsstats.neoforge.client.StockMarketScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -21,6 +19,6 @@ public record OpenStockMarketPacket() implements CustomPacketPayload {
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public static void handle(OpenStockMarketPacket pkt, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> Minecraft.getInstance().setScreen(new StockMarketScreen()));
+        ctx.enqueueWork(ClientPacketHandler::handleOpenStockMarket);
     }
 }

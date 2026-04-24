@@ -17,35 +17,33 @@ import java.util.stream.Collectors;
 public class ShopListScreen extends Screen {
 
     // ── Layout ────────────────────────────────────────────────────────────────
-    // HEADER_H matches StockMarketScreen.TAB_H so content starts right below the tab bar
     private static final int HEADER_H  = 20;
     private static final int TOOLBAR_H = 26;
     private static final int COL_HDR_H = 16;
     private static final int ROW_H     = 24;
     private static final int FOOTER_H  = 22;
     private static final int PADDING   = 10;
-    // Match StockMarketScreen dimensions so the table fills the full panel width
-    private static final int MIN_W     = 560;
-    private static final int MAX_W     = 800;
-    private static final int MARGIN    = 14;
+    private static final int MARGIN    = 10;
     private static final int SIDEBAR_W = 110;
 
-    private int panelW() { return Mth.clamp(width  - MARGIN * 2, MIN_W, MAX_W); }
-    private int panelH() { return Mth.clamp(height - MARGIN * 2, 220,   360);   }
+    // Responsive — matches StockMarketScreen exactly
+    private int panelW() { return Mth.clamp((int)(width  * 0.90f), 380, 900); }
+    private int panelH() { return Mth.clamp((int)(height * 0.85f), 200, 500); }
     private int panelX() { return (width  - panelW()) / 2; }
     private int panelY() { return (height - panelH()) / 2; }
 
-    // Table area (right of sidebar)
     private int tableX() { return panelX() + SIDEBAR_W; }
     private int tableW() { return panelW() - SIDEBAR_W; }
 
-    // Columns — sized to fill the wider table area (panelW - SIDEBAR_W - PADDING*2 - scrollbar)
-    private static final int COL_FAV   = 16;
-    private static final int COL_ITEM  = 200;
-    private static final int COL_PRICE = 90;
-    private static final int COL_OWNER = 110;
-    private static final int COL_MODE  = 48;
-    private static final int COL_DIM   = 90;
+    // Columns — proportional to available table width
+    // Total fixed: FAV(16) + scrollbar(5) + padding(20) = 41
+    // Remaining distributed: Item 35%, Price 18%, Owner 22%, Mode 12%, Dim 13%
+    private int colItem()  { return Math.max(100, (int)((tableW() - 41) * 0.35f)); }
+    private int colPrice() { return Math.max(60,  (int)((tableW() - 41) * 0.18f)); }
+    private int colOwner() { return Math.max(70,  (int)((tableW() - 41) * 0.22f)); }
+    private int colMode()  { return Math.max(44,  (int)((tableW() - 41) * 0.12f)); }
+    private int colDim()   { return Math.max(50,  (int)((tableW() - 41) * 0.13f)); }
+    private static final int COL_FAV = 16;
 
     // ── Colours ───────────────────────────────────────────────────────────────
     private static final int C_PANEL   = 0xEE0D1117;
@@ -303,7 +301,7 @@ public class ShopListScreen extends Screen {
 
     private void drawColumnHeaders(GuiGraphics gfx, int tx, int tw, int top, int mouseX, int mouseY) {
         gfx.fill(tx, top, tx + tw, top + COL_HDR_H, 0x40D4AF37);
-        int[] widths  = { COL_FAV, COL_ITEM, COL_PRICE, COL_OWNER, COL_MODE, COL_DIM };
+        int[] widths  = { COL_FAV, colItem(), colPrice(), colOwner(), colMode(), colDim() };
         String[] names = { "", "Item", "Price", "Owner", "Mode", "Dim" };
         int[] sortIdx  = { -1, 0, 1, 2, 3, 4 };
         int cx = tx + PADDING;
@@ -347,10 +345,10 @@ public class ShopListScreen extends Screen {
             gfx.renderItem(e.sellingItem(), cx, ry + (ROW_H - 16) / 2);
             String tag  = e.isTableCloth() ? "§8[TC] §r" : "§8[V] §r";
             String name = e.sellingItem().getHoverName().getString();
-            int maxW = COL_ITEM - 22;
+            int maxW = colItem() - 22;
             if (font.width(name) > maxW) name = font.plainSubstrByWidth(name, maxW - 4) + "…";
             gfx.drawString(font, tag + name, cx + 18, ty, C_TEXT);
-            cx += COL_ITEM;
+            cx += colItem();
 
             // Price
             if (e.isTableCloth() && !e.priceItem().isEmpty()) {
@@ -360,14 +358,14 @@ public class ShopListScreen extends Screen {
             } else {
                 gfx.drawString(font, formatPrice(e.totalPriceInSpurs()), cx + 2, ty, C_GOLD);
             }
-            cx += COL_PRICE;
+            cx += colPrice();
 
             // Owner
             String owner = e.ownerName();
-            if (font.width(owner) > COL_OWNER - 4)
-                owner = font.plainSubstrByWidth(owner, COL_OWNER - 8) + "…";
+            if (font.width(owner) > colOwner() - 4)
+                owner = font.plainSubstrByWidth(owner, colOwner() - 8) + "…";
             gfx.drawString(font, owner, cx + 2, ty, C_BLUE);
-            cx += COL_OWNER;
+            cx += colOwner();
 
             // Mode badge
             boolean sell = e.mode().equals("SELL");
@@ -376,12 +374,12 @@ public class ShopListScreen extends Screen {
             int bw = font.width(e.mode()) + 6;
             gfx.fill(cx + 2, ry + 4, cx + 2 + bw, ry + ROW_H - 4, badgeBg);
             gfx.drawString(font, e.mode(), cx + 5, ty, badgeFg);
-            cx += COL_MODE;
+            cx += colMode();
 
             // Dim
             String dim = e.dimensionId().replace("minecraft:", "");
-            if (font.width(dim) > COL_DIM - 4)
-                dim = font.plainSubstrByWidth(dim, COL_DIM - 8) + "…";
+            if (font.width(dim) > colDim() - 4)
+                dim = font.plainSubstrByWidth(dim, colDim() - 8) + "…";
             gfx.drawString(font, dim, cx + 2, ty, C_DIM);
 
             // Tooltip
@@ -485,7 +483,7 @@ public class ShopListScreen extends Screen {
         int tabsH  = playerTabs.isEmpty() ? 0 : 18;
         int colTop = py + HEADER_H + TOOLBAR_H + tabsH;
         if (my >= colTop && my < colTop + COL_HDR_H) {
-            int[] widths  = { COL_FAV, COL_ITEM, COL_PRICE, COL_OWNER, COL_MODE, COL_DIM };
+            int[] widths  = { COL_FAV, colItem(), colPrice(), colOwner(), colMode(), colDim() };
             int[] sortIdx = { -1, 0, 1, 2, 3, 4 };
             int cx = tx + PADDING;
             for (int i = 0; i < widths.length; i++) {
@@ -527,6 +525,13 @@ public class ShopListScreen extends Screen {
 
     @Override
     public boolean isPauseScreen() { return false; }
+
+    @Override
+    public boolean charTyped(char c, int mods) {
+        if (searchBox != null && searchBox.isFocused())
+            return searchBox.charTyped(c, mods);
+        return super.charTyped(c, mods);
+    }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 

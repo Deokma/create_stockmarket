@@ -1,6 +1,7 @@
 package by.deokma.numismaticsstats.neoforge.compat;
 
 import by.deokma.numismaticsstats.shop.ShopEntry;
+import by.deokma.numismaticsstats.neoforge.shop.ShopSavedData;
 import dev.ithundxr.createnumismatics.content.backend.behaviours.SliderStylePriceBehaviour;
 import dev.ithundxr.createnumismatics.content.vendor.VendorBlock;
 import dev.ithundxr.createnumismatics.content.vendor.VendorBlockEntity;
@@ -38,11 +39,11 @@ public final class VendorIndexer {
     }
 
     /**
-     * Indexes a VendorBlockEntity into the entries map.
+     * Indexes a VendorBlockEntity into ShopSavedData.
      * Safe to call only when {@link NumismaticsCompat#isPresent()} is true.
      */
     public static void indexVendor(ServerLevel level, BlockEntity be,
-                                   Map<String, ShopEntry> entries,
+                                   ShopSavedData savedData,
                                    Map<UUID, String> nameCache) {
         if (!(be instanceof VendorBlockEntity vendor)) return;
         try {
@@ -64,7 +65,7 @@ public final class VendorIndexer {
             String ownerName = resolveName(server, ownerUuid, nameCache);
             String key = makeKey(level, vendor.getBlockPos());
 
-            entries.put(key, new ShopEntry(
+            savedData.put(key, new ShopEntry(
                     vendor.getBlockPos(),
                     level.dimension().location().toString(),
                     sellingItem.copy(),

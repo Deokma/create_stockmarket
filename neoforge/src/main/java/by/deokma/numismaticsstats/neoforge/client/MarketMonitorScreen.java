@@ -2,8 +2,10 @@ package by.deokma.numismaticsstats.neoforge.client;
 
 import by.deokma.numismaticsstats.market.MarketData;
 import by.deokma.numismaticsstats.market.MarketEntry;
+import by.deokma.numismaticsstats.market.TradeStatsData;
 import by.deokma.numismaticsstats.neoforge.network.NetworkHandler;
 import by.deokma.numismaticsstats.neoforge.network.RequestMarketPacket;
+import by.deokma.numismaticsstats.shop.ShopListData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -43,7 +45,7 @@ public class MarketMonitorScreen {
     private static final int TOOLBAR_H  = 26;
     private static final int COL_HDR_H  = 14;
     private static final int ROW_H      = 24;
-    private static final int FOOTER_H   = 18;
+    private static final int FOOTER_H   = 36;  // taller to fit top traders row
     private static final int SECTION_H  = 12;
     private static final int PADDING    = 10;
 
@@ -78,6 +80,9 @@ public class MarketMonitorScreen {
     private int sortCol = 1;
     private boolean sortAsc = true;
     private long lastUpdateMs = 0;
+
+    /** Top traders from real sales stats: owner name → sales count, sorted desc */
+    private List<Map.Entry<String, Long>> topTraders = new ArrayList<>();
 
     private int x, y, w, h;
     private Font font;
@@ -122,7 +127,24 @@ public class MarketMonitorScreen {
     public void refreshEntries() {
         lastUpdateMs = System.currentTimeMillis();
         if (sidebar != null) sidebar.rebuild(MarketData.get());
+        rebuildTopTraders();
         applyFilter();
+    }
+
+    private void rebuildTopTraders() {
+        // Use real sales statistics from the server (TradeStatsData)
+        topTraders = TradeStatsData.getTopSellers();
+        // Fallback to shop count if no sales data yet
+        if (topTraders.isEmpty()) {
+            Map<String, Long> counts = new LinkedHashMap<>();
+            for (var e : ShopListData.get()) {
+                counts.merge(e.ownerName(), 1L, Long::sum);
+            }
+            topTraders = counts.entrySet().stream()
+                    .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                    .limit(5)
+                    .collect(Collectors.toList());
+        }
     }
 
     private void applyFilter() {
@@ -491,14 +513,48 @@ public class MarketMonitorScreen {
         int fy = y + h - FOOTER_H;
         gfx.fill(x, fy, x + w, fy + 1, C_SEP);
         gfx.fill(x, fy + 1, x + w, y + h, 0xEE060D14);
+
         int vCount = vendorRows.size(), bCount = barterRows.size();
-        // Left: counts
+        int row1Y = fy + 3;
+        int row2Y = fy + FOOTER_H / 2 + 2;
+
+        // Row 1 left: item counts
         String info = "§f" + vCount + "§7 listed  §f" + bCount + "§7 barter";
-        gfx.drawString(font, info, x + PADDING, fy + (FOOTER_H - 8) / 2, C_DIM);
-        // Right: hint
-        String hint = "Click header to sort";
-        gfx.drawString(font, hint, x + w - PADDING - font.width(hint) - 6,
-                fy + (FOOTER_H - 8) / 2, C_DIM);
+        gfx.drawString(font, info, x + PADDING, row1Y, C_DIM);
+
+        // Row 1 right: sort hint
+        String hint = "↑↓ sort";
+        gfx.drawString(font, hint, x + w - PADDING - font.width(hint) - 4, row1Y, C_DIM);
+
+        // Row 2: Top Traders
+        if (!topTraders.isEmpty()) {
+            boolean hasRealData = !TradeStatsData.getTopSellers().isEmpty();
+            String label = hasRealData ? "§6🏆 Top sellers: " : "§7🏪 Most shops: ";
+            gfx.drawString(font, label, x + PADDING, row2Y, C_GOLD);
+            int tx = x + PADDING + font.width(hasRealData ? "🏆 Top sellers: " : "🏪 Most shops: ") + 2;
+
+            for (int i = 0; i < topTraders.size() && tx < x + w - PADDING; i++) {
+                var entry = topTraders.get(i);
+                // Medal colour: gold / silver / bronze / rest
+                int nameColor = switch (i) {
+                    case 0 -> 0xFFFFD700; // gold
+                    case 1 -> 0xFFC0C0C0; // silver
+                    case 2 -> 0xFFCD7F32; // bronze
+                    default -> C_DIM;
+                };
+                String badge = (i + 1) + ". " + entry.getKey() + " §8(" + entry.getValue() + ")";
+                int bw = font.width(badge);
+                if (tx + bw > x + w - PADDING) break;
+                gfx.drawString(font, entry.getKey(), tx, row2Y, nameColor);
+                tx += font.width(entry.getKey());
+                gfx.drawString(font, " §8(" + entry.getValue() + ")", tx, row2Y, C_DIM);
+                tx += font.width(" (" + entry.getValue() + ")");
+                if (i < topTraders.size() - 1) {
+                    gfx.drawString(font, "  ", tx, row2Y, C_DIM);
+                    tx += font.width("  ");
+                }
+            }
+        }
     }
 
     // ── Input ─────────────────────────────────────────────────────────────────
@@ -516,7 +572,14 @@ public class MarketMonitorScreen {
             NetworkHandler.sendToServer(new RequestMarketPacket());
             return true;
         }
-        if (searchBox != null && searchBox.mouseClicked(mx, my, button)) return true;
+
+        // Search box — explicitly set focus based on click position
+        if (searchBox != null) {
+            boolean inBox = mx >= searchBox.getX() && mx < searchBox.getX() + searchBox.getWidth()
+                    && my >= searchBox.getY() && my < searchBox.getY() + searchBox.getHeight();
+            searchBox.setFocused(inBox);
+            if (inBox) { searchBox.mouseClicked(mx, my, button); return true; }
+        }
 
         int colTop = y + TOOLBAR_H;
         if (my >= colTop && my < colTop + COL_HDR_H) {

@@ -2,7 +2,9 @@ package by.deokma.numismaticsstats.neoforge.shop;
 
 import by.deokma.numismaticsstats.neoforge.compat.NumismaticsCompat;
 import by.deokma.numismaticsstats.neoforge.compat.VendorIndexer;
+import by.deokma.numismaticsstats.neoforge.compat.VendorTransactionTracker;
 import com.simibubi.create.content.logistics.tableCloth.TableClothBlock;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -10,6 +12,8 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 public final class VendorEvents {
@@ -21,11 +25,28 @@ public final class VendorEvents {
     private VendorEvents() {}
 
     public static void register() {
+        NeoForge.EVENT_BUS.addListener(VendorEvents::onServerStarted);
+        NeoForge.EVENT_BUS.addListener(VendorEvents::onServerStopping);
         NeoForge.EVENT_BUS.addListener(VendorEvents::onChunkLoad);
         NeoForge.EVENT_BUS.addListener(VendorEvents::onBlockPlace);
         NeoForge.EVENT_BUS.addListener(VendorEvents::onBlockBreak);
         NeoForge.EVENT_BUS.addListener(VendorEvents::onServerTick);
         NeoForge.EVENT_BUS.addListener(VendorEvents::onLevelUnload);
+        // Register transaction tracker if Numismatics is present
+        if (NumismaticsCompat.isPresent()) {
+            VendorTransactionTracker.register();
+        }
+    }
+
+    private static void onServerStarted(ServerStartedEvent event) {
+        VendorRegistry.onServerStart(event.getServer());
+    }
+
+    private static void onServerStopping(ServerStoppingEvent event) {
+        VendorRegistry.onServerStop();
+        if (NumismaticsCompat.isPresent()) {
+            VendorTransactionTracker.clear();
+        }
     }
 
     private static void onChunkLoad(ChunkEvent.Load event) {
@@ -59,8 +80,7 @@ public final class VendorEvents {
     }
 
     private static void onLevelUnload(LevelEvent.Unload event) {
-        if (event.getLevel() instanceof ServerLevel) {
-            VendorRegistry.clear();
-        }
+        // No-op: shops are persisted in SavedData, no need to clear on level unload.
+        // VendorRegistry.onServerStop() handles cleanup when the server fully stops.
     }
 }

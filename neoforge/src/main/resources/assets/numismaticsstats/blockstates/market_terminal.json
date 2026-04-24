@@ -1,5 +1,8 @@
 {
   "variants": {
-    "": { "model": "numismaticsstats:block/market_terminal" }
+    "facing=north": { "model": "numismaticsstats:block/market_terminal" },
+    "facing=south": { "model": "numismaticsstats:block/market_terminal", "y": 180 },
+    "facing=west":  { "model": "numismaticsstats:block/market_terminal", "y": 270 },
+    "facing=east":  { "model": "numismaticsstats:block/market_terminal", "y": 90 }
   }
 }

@@ -2,7 +2,6 @@ package by.deokma.numismaticsstats.neoforge.network;
 
 import by.deokma.numismaticsstats.shop.ShopEntry;
 import by.deokma.numismaticsstats.shop.ShopListData;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -35,14 +34,6 @@ public record ShopListPacket(List<ShopEntry> entries) implements CustomPacketPay
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public static void handle(ShopListPacket pkt, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            ShopListData.set(pkt.entries());
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.screen instanceof by.deokma.numismaticsstats.neoforge.client.StockMarketScreen sms) {
-                sms.refreshShopEntries();
-            } else if (mc.screen instanceof by.deokma.numismaticsstats.neoforge.client.ShopListScreen screen) {
-                screen.refreshEntries();
-            }
-        });
+        ctx.enqueueWork(() -> ClientPacketHandler.handleShopList(pkt.entries()));
     }
 }

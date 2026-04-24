@@ -3,6 +3,7 @@ package by.deokma.numismaticsstats.neoforge;
 import by.deokma.numismaticsstats.CommonInit;
 import by.deokma.numismaticsstats.NumismaticsStats;
 import by.deokma.numismaticsstats.block.MarketTerminalBlock;
+import by.deokma.numismaticsstats.block.MarketTerminalBlockEntity;
 import by.deokma.numismaticsstats.neoforge.command.ShopListCommand;
 import by.deokma.numismaticsstats.neoforge.market.MarketEvents;
 import by.deokma.numismaticsstats.neoforge.network.NetworkHandler;
@@ -33,9 +34,13 @@ public final class NumismaticsStatsNeoForge {
         VendorEvents.register();
         MarketEvents.register();
 
-        // Register block/item deferred registers
+        // Register block/item/block-entity deferred registers
         ModBlocks.BLOCKS.register(modEventBus);
         ModBlocks.ITEMS.register(modEventBus);
+        ModBlocks.BLOCK_ENTITIES.register(modEventBus);
+
+        // Wire the BlockEntityType supplier so MarketTerminalBlockEntity can use it
+        MarketTerminalBlockEntity.setTypeSupplier(ModBlocks.MARKET_TERMINAL_BE);
 
         // Hook: when player right-clicks MarketTerminalBlock, send OpenStockMarketPacket
         MarketTerminalBlock.setOpenScreenHandler(player ->

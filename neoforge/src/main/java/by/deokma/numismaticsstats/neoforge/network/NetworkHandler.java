@@ -55,6 +55,12 @@ public final class NetworkHandler {
                 OpenStockMarketPacket.CODEC,
                 OpenStockMarketPacket::handle
         );
+
+        reg.playToClient(
+                TradeStatsPacket.TYPE,
+                TradeStatsPacket.CODEC,
+                TradeStatsPacket::handle
+        );
     }
 
     public static void sendToPlayer(ServerPlayer player, ShopListPacket pkt) {
@@ -79,5 +85,9 @@ public final class NetworkHandler {
 
     public static void sendToServer(RequestMarketPacket pkt) {
         PacketDistributor.sendToServer(pkt);
+    }
+
+    public static void sendToPlayer(ServerPlayer player, TradeStatsPacket pkt) {
+        PacketDistributor.sendToPlayer(player, pkt);
     }
 }

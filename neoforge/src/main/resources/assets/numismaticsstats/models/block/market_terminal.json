@@ -1,6 +1,106 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "numismaticsstats:block/market_terminal"
-  }
+	"credit": "Custom Market Terminal model - based on Numismatics Vendor",
+	"ambientocclusion": false,
+	"gui_light": "side",
+	"render_type": "cutout",
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"gui": {
+			"rotation": [30, 225, 0],
+			"scale": [0.625, 0.625, 0.625]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"fixed": {
+			"scale": [0.5, 0.5, 0.5]
+		}
+	},
+	"textures": {
+		"particle": "numismaticsstats:block/brass_casing_short",
+		"casing": "numismaticsstats:block/brass_casing_short",
+		"plate": "numismaticsstats:block/display_case_plate",
+		"front": "numismaticsstats:block/display_case_front",
+		"glass": "numismaticsstats:block/framed_glass_small"
+	},
+	"elements": [
+		{
+			"name": "Lower base block (0-8)",
+			"from": [0, 0, 0],
+			"to": [16, 8, 16],
+			"faces": {
+				"north": {"uv": [0, 8, 16, 16], "texture": "#front"},
+				"east": {"uv": [0, 8, 16, 16], "texture": "#casing"},
+				"south": {"uv": [0, 8, 16, 16], "texture": "#casing"},
+				"west": {"uv": [0, 8, 16, 16], "texture": "#casing"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#plate"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#casing"}
+			}
+		},
+		{
+			"name": "Upper frame - North wall (front glass panel)",
+			"from": [2, 8, 2],
+			"to": [14, 14, 3],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, 2]},
+			"faces": {
+				"north": {"uv": [1, 1, 13, 10], "texture": "#glass"},
+				"east": {"uv": [0, 0, 2, 7], "texture": "#casing"},
+				"south": {"uv": [1, 1, 13, 10], "texture": "#glass"},
+				"west": {"uv": [0, 0, 2, 7], "texture": "#casing"},
+				"up": {"uv": [0, 0, 14, 1], "texture": "#glass"},
+				"down": {"uv": [1, 0, 15, 2], "texture": "#casing"}
+			}
+		},
+		{
+			"name": "Upper frame - South wall (back)",
+			"from": [2, 8, 13],
+			"to": [14, 14, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, -2]},
+			"faces": {
+				"north": {"uv": [1, 1, 13, 10], "texture": "#glass"},
+				"east": {"uv": [0, 0, 2, 6], "texture": "#casing"},
+				"south": {"uv": [1, 1, 13, 10], "texture": "#glass"},
+				"west": {"uv": [0, 0, 2, 8], "texture": "#casing"},
+				"up": {"uv": [0, 0, 14, 1], "texture": "#glass"},
+				"down": {"uv": [1, 0, 15, 2], "texture": "#casing"}
+			}
+		},
+		{
+			"name": "Upper frame - West wall",
+			"from": [2, 8, 2],
+			"to": [3, 14, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [2, 0, 0]},
+			"faces": {
+				"north": {"uv": [0, 0, 2, 8], "texture": "#casing"},
+				"east": {"uv": [1, 1, 13, 10], "texture": "#glass"},
+				"south": {"uv": [0, 0, 2, 8], "texture": "#casing"},
+				"west": {"uv": [1, 1, 13, 10], "texture": "#glass"},
+				"up": {"uv": [0, 0, 1, 7], "texture": "#glass"},
+				"down": {"uv": [0, 0, 2, 12], "texture": "#casing"}
+			}
+		},
+		{
+			"name": "Upper frame - East wall",
+			"from": [13, 8, 2],
+			"to": [14, 14, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [-2, 0, 0]},
+			"faces": {
+				"north": {"uv": [0, 0, 2, 8], "texture": "#casing"},
+				"east": {"uv": [1, 1, 13, 10], "texture": "#glass"},
+				"south": {"uv": [0, 0, 2, 8], "texture": "#casing"},
+				"west": {"uv": [1, 1, 13, 10], "texture": "#glass"},
+				"up": {"uv": [1, 0, 13, 1], "rotation": 270, "texture": "#glass"},
+				"down": {"uv": [0, 0, 2, 12], "texture": "#casing"}
+			}
+		}
+	]
 }

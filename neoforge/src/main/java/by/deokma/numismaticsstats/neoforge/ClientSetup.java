@@ -1,6 +1,8 @@
 package by.deokma.numismaticsstats.neoforge;
 
 import by.deokma.numismaticsstats.market.MarketData;
+import by.deokma.numismaticsstats.neoforge.ModBlocks;
+import by.deokma.numismaticsstats.neoforge.client.MarketTerminalRenderer;
 import by.deokma.numismaticsstats.neoforge.client.StockMarketScreen;
 import by.deokma.numismaticsstats.neoforge.network.NetworkHandler;
 import by.deokma.numismaticsstats.neoforge.network.RequestMarketPacket;
@@ -8,6 +10,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
@@ -28,11 +31,17 @@ public final class ClientSetup {
 
     public static void init(IEventBus modBus) {
         modBus.addListener(ClientSetup::onRegisterKeys);
+        modBus.addListener(ClientSetup::onRegisterRenderers);
         NeoForge.EVENT_BUS.addListener(ClientSetup::onKeyInput);
     }
 
     private static void onRegisterKeys(RegisterKeyMappingsEvent event) {
         event.register(OPEN_STOCK_MARKET);
+    }
+
+    private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(ModBlocks.MARKET_TERMINAL_BE.get(),
+                MarketTerminalRenderer::new);
     }
 
     private static void onKeyInput(InputEvent.Key event) {

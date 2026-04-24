@@ -28,6 +28,10 @@ public record RequestMarketPacket() implements CustomPacketPayload {
             if (!(ctx.player() instanceof ServerPlayer player)) return;
             List<MarketEntry> entries = MarketRegistry.buildEntries(player.server);
             NetworkHandler.sendToPlayer(player, new MarketPacket(entries));
+            // Also send trade stats leaderboard
+            var stats = by.deokma.numismaticsstats.neoforge.market.TradeStatsSavedData
+                    .getOrCreate(player.server);
+            NetworkHandler.sendToPlayer(player, new TradeStatsPacket(stats.getTopSellers(10)));
         });
     }
 }

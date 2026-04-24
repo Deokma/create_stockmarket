@@ -26,7 +26,7 @@ public record RequestShopListPacket() implements CustomPacketPayload {
     public static void handle(RequestShopListPacket pkt, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (!(ctx.player() instanceof ServerPlayer player)) return;
-            // Refresh loaded chunks before responding so data is up-to-date
+            // Refresh loaded chunks to pick up any recent changes, then send all known shops
             VendorRegistry.refreshLoaded(player.server);
             List<ShopEntry> entries = VendorRegistry.getAll();
             NetworkHandler.sendToPlayer(player, new ShopListPacket(entries));
