@@ -1,8 +1,0 @@
-{
-  "variants": {
-    "facing=north": { "model": "create_stockmarket:block/market_terminal" },
-    "facing=south": { "model": "create_stockmarket:block/market_terminal", "y": 180 },
-    "facing=west":  { "model": "create_stockmarket:block/market_terminal", "y": 270 },
-    "facing=east":  { "model": "create_stockmarket:block/market_terminal", "y": 90 }
-  }
-}

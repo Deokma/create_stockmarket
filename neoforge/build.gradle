@@ -89,6 +89,12 @@ dependencies {
     }
     additionalRuntimeClasspath("org.commonmark:commonmark:0.24.0")
 
+    // ── Xaero's Maps ─────────────────────────────────────────────────────────
+    compileOnly("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${xaero_minimap_version}")
+    runtimeOnly("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${xaero_minimap_version}")
+    compileOnly("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}")
+    runtimeOnly("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}")
+
     // ── Test dependencies ────────────────────────────────────────────────────
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.3")
     testImplementation("net.jqwik:jqwik:1.9.1")

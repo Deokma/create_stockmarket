@@ -26,6 +26,11 @@ subprojects {
             name = 'REI'
             url  = 'https://maven.shedaniel.me'
         }
+        // Xaero's Maps
+        maven {
+            url  = 'https://chocolateminecraft.com/maven'
+            name = "Xaero's Maven"
+        }
         // NeoForge releases
         maven { url = 'https://maven.neoforged.net/releases'  }
         // Fabric

@@ -1,6 +1,6 @@
 {
   "replace": false,
   "values": [
-    "create_stockmarket:market_terminal"
+    "stockmarket:market_terminal"
   ]
 }
