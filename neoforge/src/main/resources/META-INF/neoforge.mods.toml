@@ -38,3 +38,10 @@ authors     = "${mod_authors}"
     versionRange = "[1.0.19,)"
     ordering     = "BEFORE"
     side         = "BOTH"
+
+[[dependencies.${mod_id}]]
+    modId        = "tradeworks"
+    type         = "optional"
+    versionRange = "[1.0.0,)"
+    ordering     = "NONE"
+    side         = "BOTH"

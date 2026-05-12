@@ -9,7 +9,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "by.deokma.numismaticsstats.fabric.NumismaticsStatsFabric"
+      "by.deokma.create_stockmarket.fabric.create_stockmarketFabric"
     ]
   },
   "depends": {

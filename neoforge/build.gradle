@@ -72,6 +72,9 @@ dependencies {
     // ── Numismatics ──────────────────────────────────────────────────────────
     implementation("maven.modrinth:numismatics:${numismatics_version}")
 
+    // ── Tradeworks — bundled on dev classpath for client/server run configs ─
+    implementation("maven.modrinth:tradeworks:${tradeworks_version}")
+
     compileOnly("mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}")
     runtimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
 
@@ -85,6 +88,15 @@ dependencies {
         }
     }
     additionalRuntimeClasspath("org.commonmark:commonmark:0.24.0")
+
+    // ── Test dependencies ────────────────────────────────────────────────────
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.3")
+    testImplementation("net.jqwik:jqwik:1.9.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+test {
+    useJUnitPlatform()
 }
 
 // Merge common java sources into the NeoForge compile source set.
