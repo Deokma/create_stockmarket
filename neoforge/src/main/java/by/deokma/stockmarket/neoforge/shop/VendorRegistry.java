@@ -55,6 +55,12 @@ public final class VendorRegistry {
             nameCache.put(e.ownerUuid(), e.ownerName());
         }
         LOGGER.info("[VendorRegistry] Loaded {} shops from disk", savedData.getAll().size());
+
+        // Spawn chunks (and any other always-loaded chunks) fire ChunkEvent.Load
+        // before ServerStartedEvent, so savedData is null at that point and they
+        // are silently skipped. Re-scan every loaded chunk now that savedData is ready.
+        refreshLoaded(server);
+        LOGGER.info("[VendorRegistry] Post-start refresh: {} shops indexed", savedData.getAll().size());
     }
 
     /** Call when the server stops / world unloads. */

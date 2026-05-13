@@ -99,9 +99,11 @@ public final class VendorTransactionTracker {
 
             int sold = snapshot.initialCount() - newStock;
             String ownerName = resolveOwnerName(server, snapshot.ownerUuid());
-            TradeStatsSavedData.getOrCreate(server).recordSale(ownerName, sold);
+            // Record 1 transaction per purchase, regardless of how many items
+            // were in the stack — buying 64 blocks at once is still 1 sale.
+            TradeStatsSavedData.getOrCreate(server).recordSale(ownerName, 1);
 
-            LOGGER.debug("[VendorTracker] Sale at {} owner={} sold={}",
+            LOGGER.debug("[VendorTracker] Sale at {} owner={} items={}",
                     snapshot.pos(), ownerName, sold);
         }
     }
