@@ -1,0 +1,21 @@
+{
+  "screen.stockmarket.shop_list": "Shop List",
+  "screen.stockmarket.search": "Search item or owner...",
+  "screen.stockmarket.refresh": "Refresh",
+  "screen.stockmarket.loading": "Loading...",
+  "screen.stockmarket.no_shops": "No shops found in loaded chunks.",
+  "screen.stockmarket.col_item": "Item",
+  "screen.stockmarket.col_price": "Price",
+  "screen.stockmarket.col_owner": "Owner",
+  "screen.stockmarket.col_mode": "Mode",
+  "screen.stockmarket.col_dim": "Dimension",
+  "key.stockmarket.open_shop_list": "Open Shop List",
+  "key.stockmarket.open_stock_market": "Open Stock Market",
+  "key.categories.stockmarket": "Create: StockMarket",
+  "block.stockmarket.market_terminal": "Market Terminal",
+  "screen.stockmarket.stock_market": "Stock Market",
+  "screen.stockmarket.tab_shops": "Shops",
+  "screen.stockmarket.tab_market": "Market",
+  "screen.stockmarket.market_loading": "Loading...",
+  "screen.stockmarket.market_empty": "No market data"
+}

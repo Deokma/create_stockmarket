@@ -7,6 +7,7 @@ import by.deokma.stockmarket.shop.ShopEntry;
 import com.simibubi.create.content.logistics.tableCloth.TableClothBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Mth;
 import net.minecraft.server.level.ServerLevel;
@@ -112,6 +113,55 @@ public final class VendorRegistry {
                 LOGGER.debug("[VendorRegistry] refreshLoaded: {}", e.getMessage());
             }
         }
+        pruneStaleEntries(server);
+    }
+
+    /**
+     * Removes persisted entries whose chunk is currently loaded but the block
+     * entity at that position is no longer a valid shop (broken block, removed mod, etc.).
+     * Entries in unloaded chunks are left alone — they will be verified once that chunk loads.
+     */
+    private static void pruneStaleEntries(MinecraftServer server) {
+        if (savedData == null) return;
+
+        Set<String> toRemove = new HashSet<>();
+
+        for (ShopEntry entry : savedData.getAll()) {
+            ResourceLocation dimId = ResourceLocation.tryParse(entry.dimensionId());
+            if (dimId == null) {
+                toRemove.add(entryBaseKey(entry));
+                continue;
+            }
+
+            ServerLevel level = null;
+            for (ServerLevel l : server.getAllLevels()) {
+                if (l.dimension().location().equals(dimId)) { level = l; break; }
+            }
+            if (level == null) continue; // dimension not loaded — can't verify
+
+            if (!level.isLoaded(entry.pos())) continue; // chunk not loaded — skip
+
+            // Chunk is loaded: block must exist and be a recognised shop entity
+            if (!isValidShopEntity(level.getBlockEntity(entry.pos()))) {
+                toRemove.add(entryBaseKey(entry));
+            }
+        }
+
+        for (String baseKey : toRemove) {
+            savedData.removeByBaseKey(baseKey);
+            LOGGER.info("[VendorRegistry] Pruned stale shop entry: {}", baseKey);
+        }
+    }
+
+    private static boolean isValidShopEntity(BlockEntity be) {
+        if (be == null) return false;
+        if (be instanceof TableClothBlockEntity) return true;
+        return NumismaticsCompat.isPresent() && VendorIndexer.isVendorEntity(be);
+    }
+
+    private static String entryBaseKey(ShopEntry entry) {
+        BlockPos p = entry.pos();
+        return entry.dimensionId() + "|" + p.getX() + "," + p.getY() + "," + p.getZ();
     }
 
     /** Clears only the in-memory name cache; persisted shops are kept on disk. */
